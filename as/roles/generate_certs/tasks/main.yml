@@ -1,0 +1,81 @@
+- name: Check cfssl installed/available on localhost
+  shell: cfssl version
+
+- name: Check cfssljson installed/available on localhost
+  shell: cfssljson -version
+
+- name: Generate CA cert and key
+  shell: cfssl gencert -initca roles/generate_certs/files/ca-csr.json | cfssljson -bare certs/ca/ca
+
+- name: Generate client certs for Kubernetes admin
+  shell: >
+    cfssl gencert
+    -ca=certs/ca/ca.pem
+    -ca-key=certs/ca/ca-key.pem
+    -config=roles/generate_certs/files/ca-config.json
+    -profile=kubernetes
+    roles/generate_certs/files/admin-csr.json | cfssljson -bare certs/admin/admin
+
+- name: Generate Kubelet CSRs
+  loop: "{{ groups['workers'] }}"
+  template:
+      src: kubelet-csr.json.j2
+      dest: "/tmp/{{ item }}-csr.json"
+      mode: 0644
+
+- name: Generate Kubelet client certs for workers
+  loop: "{{ groups['workers'] }}"
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -hostname={{ item }},{{ hostvars[item].private_ip }} \
+    -profile=kubernetes \
+    /tmp/{{ item }}-csr.json | cfssljson -bare certs/kubelet/{{item}}
+
+- name: Generate Kube Controller Manager client certs
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -profile=kubernetes \
+    roles/generate_certs/files/controller-manager-csr.json | cfssljson -bare certs/controller-manager/controller-manager
+
+- name: Generate Kube Proxy client certs
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -profile=kubernetes \
+    roles/generate_certs/files/kube-proxy-csr.json | cfssljson -bare certs/kube-proxy/kube-proxy
+
+- name: Generate Kube Scheduler client certs
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -profile=kubernetes \
+    roles/generate_certs/files/kube-scheduler-csr.json | cfssljson -bare certs/kube-scheduler/kube-scheduler
+
+- name: Generate Kubernetes API server certs
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -hostname=10.32.0.1,{% for host in groups['controllers'] %}{{ hostvars[host].private_ip }},{% endfor %}{{ hostvars[groups['all'][0]].k8s_public_ip }},127.0.0.1,kubernetes.default \
+    -profile=kubernetes \
+    roles/generate_certs/files/kube-apiserver-csr.json | cfssljson -bare certs/kube-apiserver/kube-apiserver
+
+- name: Generate Service Account Key Pair
+  shell: >
+    cfssl gencert \
+    -ca=certs/ca/ca.pem \
+    -ca-key=certs/ca/ca-key.pem \
+    -config=roles/generate_certs/files/ca-config.json \
+    -profile=kubernetes \
+    roles/generate_certs/files/service-account-csr.json | cfssljson -bare certs/service-account/service-account

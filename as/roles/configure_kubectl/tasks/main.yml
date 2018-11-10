@@ -1,0 +1,21 @@
+- name: kubectl set-cluster
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority={{ lookup('env', 'PWD') }}/certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://{{ hostvars[groups['all'][0]].k8s_public_ip }}:6443
+
+- name: kubectl set-cluster
+  shell: >
+    kubectl config set-credentials admin \
+    --client-certificate={{ lookup('env', 'PWD') }}/certs/admin/admin.pem \
+    --client-key={{ lookup('env', 'PWD') }}/certs/admin/admin-key.pem
+
+- name: kubectl set-context
+  shell: >
+    kubectl config set-context k8s-lab \
+    --cluster=k8s-lab \
+    --user=admin
+
+- name: kubectl use-context
+  shell: kubectl config use-context k8s-lab

@@ -1,0 +1,197 @@
+- name: Install socat
+  apt:
+    name: socat
+    update_cache: yes
+
+- name: Install conntrack
+  apt:
+    name: conntrack
+    update_cache: yes
+
+- name: Install ipset
+  apt:
+    name: ipset
+    update_cache: yes
+
+- name: Download crictl
+  unarchive:
+    src: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+
+- name: Download runsc
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-the-hard-way/runsc-50c283b9f56bb7200938d9e207355f05f79f0d17
+    dest: /usr/local/bin/runsc
+    mode: 0755
+
+- name: Download runc
+  get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v1.0.0-rc5/runc.amd64
+    dest: /usr/local/bin/runc
+    mode: 0755
+
+- name: Create /opt/cni/bin/
+  file:
+    path: /opt/cni/bin/
+    state: directory
+
+- name: Download CNI plugins
+  unarchive:
+    src: https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz
+    dest: /opt/cni/bin/
+    remote_src: yes
+
+- name: Download containerd
+  unarchive:
+    src: https://github.com/containerd/containerd/releases/download/v1.2.0-rc.0/containerd-1.2.0-rc.0.linux-amd64.tar.gz
+    dest: /
+    remote_src: yes
+
+- name: Download kubectl
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Download kube-proxy
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-proxy
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Download kubelet
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubelet
+    dest: /usr/local/bin/
+    mode: 0755
+
+# Configure CNI networking
+
+- name: Create /etc/cni/net.d/
+  file:
+    path: /etc/cni/net.d/
+    state: directory
+
+- name: Render bridge.conf template for CNI networking
+  template:
+    src: cni-bridge.conf.j2
+    dest: /etc/cni/net.d/10-bridge.conf
+
+- name: Upload loopback.conf for CNI networking
+  copy:
+    src: cni-loopback.conf
+    dest: /etc/cni/net.d/99-loopback.conf
+
+# Configure containerd
+
+- name: Create /etc/containerd/
+  file:
+    path: /etc/containerd/
+    state: directory
+
+- name: Upload containerd config.toml
+  copy:
+    src: containerd-config.toml
+    dest: /etc/containerd/config.toml
+
+- name: Upload containerd.service for systemd
+  copy:
+    src: containerd.service
+    dest: /etc/systemd/system/
+
+# Configure kubelet
+
+- name: Create /var/lib/kubelet/
+  file:
+    path: /var/lib/kubelet/
+    state: directory
+
+- name: Copy certs
+  copy:
+    src: ~/{{ inventory_hostname }}.pem
+    dest: /var/lib/kubelet/
+    remote_src: yes
+
+- name: Copy certs keys
+  copy:
+    src: ~/{{ inventory_hostname }}-key.pem
+    dest: /var/lib/kubelet/
+    remote_src: yes
+
+- name: Copy kubeconfigs
+  copy:
+    src: ~/{{ inventory_hostname }}.kubeconfig
+    dest: /var/lib/kubelet/kubeconfig
+    remote_src: yes
+
+- name: Create /var/lib/kubernetes/
+  file:
+    path: /var/lib/kubernetes/
+    state: directory
+
+- name: Copy CA cert
+  copy:
+    src: ~/ca.pem
+    dest: /var/lib/kubernetes/
+    remote_src: yes
+
+- name: Upload kubelet.service for systemd
+  copy:
+    src: kubelet.service
+    dest: /etc/systemd/system/
+
+- name: Render kubelet-config.yaml in /var/lib/kubelet/
+  template:
+    src: kubelet-config.yaml.j2
+    dest: /var/lib/kubelet/kubelet-config.yaml
+
+# Configure kube-proxy
+
+- name: Create /var/lib/kube-proxy/
+  file:
+    path: /var/lib/kube-proxy/
+    state: directory
+
+- name: Copy CA cert
+  copy:
+    src: ~/kube-proxy.kubeconfig
+    dest: /var/lib/kube-proxy/kubeconfig
+    remote_src: yes
+
+- name: Upload kube-proxy-config.yaml config
+  copy:
+    src: kube-proxy-config.yaml
+    dest: /var/lib/kube-proxy/
+
+- name: Upload kube-proxy.service for systemd
+  copy:
+    src: kube-proxy.service
+    dest: /etc/systemd/system/
+
+# Start containerd
+
+- name: Enable containerd service
+  systemd:
+    name: containerd
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+# Start kubelet
+
+- name: Enable kubelet service
+  systemd:
+    name: kubelet
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+# Start kube-proxy
+
+- name: Enable kube-proxy service
+  systemd:
+    name: kube-proxy
+    enabled: yes
+    daemon_reload: yes
+    state: restarted

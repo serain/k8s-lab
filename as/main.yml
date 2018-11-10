@@ -1,0 +1,29 @@
+- name: Generate certs, kubeconfigs and etcd encryption config
+  hosts: 127.0.0.1
+  connection: local
+  roles:
+    - generate_certs
+    - generate_kubeconfigs
+    - generate_encryption_config
+
+- name: Set up controllers
+  hosts: controllers
+  roles:
+    - upload_controller_files
+    - bootstrap_etcd
+    - bootstrap_control_plane
+  become: true
+
+- name: Set up workers
+  hosts: workers
+  roles:
+    - upload_worker_files
+    - bootstrap_nodes
+  become: true
+
+- name: Configure kubectl and set up CoreDNS
+  hosts: 127.0.0.1
+  connection: local
+  roles:
+    - configure_kubectl
+    - setup_coredns

@@ -1,0 +1,16 @@
+{
+    "CN": "system:kube-proxy",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "X",
+        "L": "X",
+        "O": "system:node-proxier",
+        "OU": "k8s-lab",
+        "ST": "X"
+      }
+    ]
+}

@@ -1,0 +1,15 @@
+# as/
+as/hosts
+as/ssh_config
+as/**/*.pem
+as/**/*.csr
+as/**/*.kubeconfig
+as/**/ssh_control-*
+as/*.retry
+as/encryption_config/encryption-config.yaml
+
+# tf/
+tf/**/secrets.tfvars
+tf/**/user.tfvars
+**/.terraform/*
+tf/**/*.tfstate*

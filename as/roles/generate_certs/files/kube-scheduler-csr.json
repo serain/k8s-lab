@@ -1,0 +1,16 @@
+{
+    "CN": "system:kube-scheduler",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "X",
+        "L": "X",
+        "O": "system:kube-scheduler",
+        "OU": "k8s-lab",
+        "ST": "X"
+      }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "CN": "system:kube-controller-manager",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "X",
+        "L": "X",
+        "O": "system:kube-controller-manager",
+        "OU": "k8s-lab",
+        "ST": "X"
+      }
+    ]
+}

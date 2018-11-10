@@ -1,0 +1,3 @@
+- name: Deploy CoreDNS cluster addon
+  shell: kubectl apply -f roles/setup_coredns/files/coredns.yaml
+

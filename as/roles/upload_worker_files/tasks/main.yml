@@ -1,0 +1,24 @@
+- name: Copy CA cert
+  copy:
+    src: certs/ca/ca.pem
+    dest: ~/
+
+- name: Copy private keys
+  copy:
+    src: certs/kubelet/{{ inventory_hostname }}-key.pem
+    dest: ~/
+
+- name: Copy certs
+  copy:
+    src: certs/kubelet/{{ inventory_hostname }}.pem
+    dest: ~/
+
+- name: Copy kubelet kubeconfigs
+  copy:
+    src: kubeconfigs/kubelet/{{ inventory_hostname }}.kubeconfig
+    dest: ~/
+
+- name: Copy kube-proxy kubeconfigs
+  copy:
+    src: kubeconfigs/kube-proxy/kube-proxy.kubeconfig
+    dest: ~/

@@ -1,0 +1,158 @@
+- name: Create /etc/kubernetes/config/
+  file:
+    path: /etc/kubernetes/config
+    state: directory
+
+- name: Download kube-apiserver
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-apiserver
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Download kube-controller-manager
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-controller-manager
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Download kube-scheduler
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-scheduler
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Download kubectl
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: Create /var/lib/kubernetes/
+  file:
+    path: /var/lib/kubernetes/
+    state: directory
+
+- name: Copy ca.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/ca.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy ca-key.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/ca-key.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy kube-apiserver-key.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/kube-apiserver-key.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy kube-apiserver.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/kube-apiserver.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy service-account-key.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/service-account-key.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy service-account.pem to /var/lib/kubernetes/
+  copy:
+    src: ~/service-account.pem
+    remote_src: yes
+    dest: /var/lib/kubernetes/
+
+- name: Copy encryption-config.yaml to /var/lib/kubernetes/
+  copy:
+    src: ~/encryption-config.yaml
+    remote_src: yes
+    dest: /var/lib/kubernetes
+
+- name: Render kube-apiserver.service template for systemd
+  template:
+    src: kube-apiserver.service.j2
+    dest: /etc/systemd/system/kube-apiserver.service
+
+- name: Upload controller-mananger.kubeconfig to /var/lib/kubernetes
+  copy:
+    src: kubeconfigs/controller-manager/controller-manager.kubeconfig
+    dest: /var/lib/kubernetes/
+
+- name: Upload controller-manager.service for systemd
+  copy:
+    src: controller-manager.service
+    dest: /etc/systemd/system/
+
+- name: Upload kube-scheduler.kubeconfig to /var/lib/kubernetes
+  copy:
+    src: kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+    dest: /var/lib/kubernetes/
+
+- name: Upload kube-scheduler.yaml to /etc/kubernetes/config/
+  copy:
+    src: kube-scheduler.yaml
+    dest: /etc/kubernetes/config/
+
+- name: Upload kube-scheduler.service template for systemd
+  copy:
+    src: kube-scheduler.service
+    dest: /etc/systemd/system/
+
+- name: Enable kube-apiserver service
+  systemd:
+    name: kube-apiserver
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: Enable kube-controller-manager service
+  systemd:
+    name: controller-manager
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: Enable kube-scheduler service
+  systemd:
+    name: kube-scheduler
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: Install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+
+- name: Upload healthcheck.nginx as default nginx config
+  copy:
+    src: healthcheck.nginx
+    dest: /etc/nginx/sites-available/default
+
+- name: Restart nginx service
+  systemd:
+    name: nginx
+    enabled: yes
+    state: restarted
+
+- name: Upload YAML to allow kube-apiserver to access kubelets
+  copy:
+    src: kube-apiserver-to-kubelet-role.yaml
+    dest: /tmp/
+
+- name: Create system:kube-apiserver-to-kubelet ClusterRole with permissions to access Kubelet API
+  shell: kubectl apply --kubeconfig ~/admin.kubeconfig -f /tmp/kube-apiserver-to-kubelet-role.yaml
+
+- name: Upload YAML to assigne system:kube-apiserver-to-kubelet role to kubernetes user
+  copy:
+    src: bind-clusterrole-to-kubernetes-user.yaml
+    dest: /tmp/
+
+- name: Bind system:kube-apiserver-to-kubelet role to kubernetes user
+  shell: kubectl apply --kubeconfig ~/admin.kubeconfig -f /tmp/bind-clusterrole-to-kubernetes-user.yaml

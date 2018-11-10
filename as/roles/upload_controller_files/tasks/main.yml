@@ -1,0 +1,49 @@
+- name: Copy CA cert
+  copy:
+    src: certs/ca/ca.pem
+    dest: ~/
+
+- name: Copy CA private key
+  copy:
+    src: certs/ca/ca-key.pem
+    dest: ~/
+
+- name: Copy Kube API cert
+  copy:
+    src: certs/kube-apiserver/kube-apiserver.pem
+    dest: ~/
+
+- name: Copy Kube API key
+  copy:
+    src: certs/kube-apiserver/kube-apiserver-key.pem
+    dest: ~/
+
+- name: Copy Service Account cert
+  copy:
+    src: certs/service-account/service-account.pem
+    dest: ~/
+
+- name: Copy Service Account key
+  copy:
+    src: certs/service-account/service-account-key.pem
+    dest: ~/
+
+- name: Copy admin kubeconfig
+  copy:
+    src: kubeconfigs/admin/admin.kubeconfig
+    dest: ~/
+
+- name: Copy controller-manager kubeconfig
+  copy:
+    src: kubeconfigs/controller-manager/controller-manager.kubeconfig
+    dest: ~/
+
+- name: Copy kube-scheduler kubeconfig
+  copy:
+    src: kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+    dest: ~/
+
+- name: Copy encryption-config.yaml
+  copy:
+    src: encryption_config/encryption-config.yaml
+    dest: ~/

@@ -1,0 +1,142 @@
+- name: Kubelets set-cluster
+  loop: "{{ groups['workers'] }}"
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority=certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://{{ hostvars[groups['all'][0]].k8s_public_ip }}:6443 \
+    --kubeconfig=kubeconfigs/kubelet/{{ item }}.kubeconfig
+
+- name: Kubelets set-credentials
+  loop: "{{ groups['workers'] }}"
+  shell: >
+    kubectl config set-credentials system:node:{{ item }} \
+    --client-certificate=certs/kubelet/{{ item }}.pem \
+    --client-key=certs/kubelet/{{ item }}-key.pem \
+    --embed-certs=true \
+    --kubeconfig=kubeconfigs/kubelet/{{ item }}.kubeconfig
+
+- name: Kubelets set-context
+  loop: "{{ groups['workers'] }}"
+  shell: >
+    kubectl config set-context default \
+    --cluster=k8s-lab \
+    --user=system:node:{{ item }} \
+    --kubeconfig=kubeconfigs/kubelet/{{ item }}.kubeconfig
+
+- name: Kubelets use-context
+  loop: "{{ groups['workers'] }}"
+  shell: >
+    kubectl config use-context default --kubeconfig=kubeconfigs/kubelet/{{ item }}.kubeconfig
+
+
+- name: kube-proxy set-cluster
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority=certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://{{ hostvars[groups['all'][0]].k8s_public_ip }}:6443 \
+    --kubeconfig=kubeconfigs/kube-proxy/kube-proxy.kubeconfig
+
+- name: kube-proxy set-credentials
+  shell: >
+    kubectl config set-credentials system:kube-proxy \
+    --client-certificate=certs/kube-proxy/kube-proxy.pem \
+    --client-key=certs/kube-proxy/kube-proxy-key.pem \
+    --embed-certs=true \
+    --kubeconfig=kubeconfigs/kube-proxy/kube-proxy.kubeconfig
+
+- name: kube-proxy set-context
+  shell: >
+    kubectl config set-context default \
+    --cluster=k8s-lab \
+    --user=system:kube-proxy \
+    --kubeconfig=kubeconfigs/kube-proxy/kube-proxy.kubeconfig
+
+- name: kube-proxy use-context
+  shell: >
+    kubectl config use-context default --kubeconfig=kubeconfigs/kube-proxy/kube-proxy.kubeconfig
+
+
+- name: kube-controller-manager set-cluster
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority=certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://127.0.0.1:6443 \
+    --kubeconfig=kubeconfigs/controller-manager/controller-manager.kubeconfig
+
+- name: kube-controller-manager set-credentials
+  shell: >
+    kubectl config set-credentials system:kube-controller-manager \
+    --client-certificate=certs/controller-manager/controller-manager.pem \
+    --client-key=certs/controller-manager/controller-manager-key.pem \
+    --embed-certs=true \
+    --kubeconfig=kubeconfigs/controller-manager/controller-manager.kubeconfig
+
+- name: kube-controller-manager set-context
+  shell: >
+    kubectl config set-context default \
+    --cluster=k8s-lab \
+    --user=system:kube-controller-manager \
+    --kubeconfig=kubeconfigs/controller-manager/controller-manager.kubeconfig
+
+- name: kube-controller use-context
+  shell: >
+    kubectl config use-context default --kubeconfig=kubeconfigs/controller-manager/controller-manager.kubeconfig
+
+
+- name: kube-scheduler set-cluster
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority=certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://127.0.0.1:6443 \
+    --kubeconfig=kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+
+- name: kube-scheduler set-credentials
+  shell: >
+    kubectl config set-credentials system:kube-scheduler \
+    --client-certificate=certs/kube-scheduler/kube-scheduler.pem \
+    --client-key=certs/kube-scheduler/kube-scheduler-key.pem \
+    --embed-certs=true \
+    --kubeconfig=kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+
+- name: kube-scheduler set-context
+  shell: >
+    kubectl config set-context default \
+    --cluster=k8s-lab \
+    --user=system:kube-scheduler \
+    --kubeconfig=kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+
+- name: kube-scheduler use-context
+  shell: >
+    kubectl config use-context default --kubeconfig=kubeconfigs/kube-scheduler/kube-scheduler.kubeconfig
+
+
+- name: admin set-cluster
+  shell: >
+    kubectl config set-cluster k8s-lab \
+    --certificate-authority=certs/ca/ca.pem \
+    --embed-certs=true \
+    --server=https://127.0.0.1:6443 \
+    --kubeconfig=kubeconfigs/admin/admin.kubeconfig
+
+- name: admin set-cluster
+  shell: >
+    kubectl config set-credentials admin \
+    --client-certificate=certs/admin/admin.pem \
+    --client-key=certs/admin/admin-key.pem \
+    --embed-certs=true \
+    --kubeconfig=kubeconfigs/admin/admin.kubeconfig
+
+- name: admin set-cluster
+  shell: >
+    kubectl config set-context default \
+    --cluster=k8s-lab \
+    --user=admin \
+    --kubeconfig=kubeconfigs/admin/admin.kubeconfig
+
+- name: admin use-context
+  shell: >
+    kubectl config use-context default --kubeconfig=kubeconfigs/admin/admin.kubeconfig

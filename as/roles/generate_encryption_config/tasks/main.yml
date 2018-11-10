@@ -1,0 +1,9 @@
+- name: Generating encryption key
+  shell: head -c 32 /dev/urandom | base64
+  register: encryption_key
+
+- name: Rendering encryption config
+  template:
+      src: encryption-config.yaml.j2
+      dest: "encryption_config/encryption-config.yaml"
+      mode: 0644

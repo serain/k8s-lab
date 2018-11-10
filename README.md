@@ -1,6 +1,6 @@
 # Kubernetes Lab
 
-> Kubernetes from Scratch on Azure, with Terraform and Ansible
+> Self-managed Kubernetes from scratch on Azure, with Terraform and Ansible
 
 ## Acknowledgements
 

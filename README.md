@@ -74,4 +74,4 @@ While this repo should provide a secure bare cluster, it was only designed with 
 
 The Ansible is _not_ idempotent; everytime you run it, new certs will be generated and services will bounce.
 
-There's an apparent bug with NSG-subnet associations in the `azurerm` Terraform provider that causes NSG's to disassociate from subnets when updating a terraformed environment. You'll run into this issue is you try to rebuild/update an existing cluster. ATM you'll need to re-attach the NSGs to the subnets from the CLI or portal, or better off.
+There's an apparent bug with NSG-subnet associations in the `azurerm` Terraform provider that causes NSG's to disassociate from subnets when updating a terraformed environment. You'll run into this issue is you try to rebuild/update an existing cluster. ATM you'll need to re-attach the NSGs to the subnets from the CLI or portal, or build from scratch.

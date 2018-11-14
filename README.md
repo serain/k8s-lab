@@ -68,7 +68,7 @@ This cluster implements some good security practices:
 
 > Caution: during setup some binaries are pulled from remote URLs without integrity checks, theoretically opening the installation to supply-chain attacks
 
-While this repo should provide a secure bare cluster, it was only designed with training in mind. I do not recommend it for production use.
+That being said, this cluster isn't hardened and was built with training in mind. I do not recommend it for production use.
 
 ## Limitations and Known Issues
 
